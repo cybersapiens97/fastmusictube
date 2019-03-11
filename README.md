@@ -19,10 +19,15 @@ In order to use FastMusicTube, you need some things installed first:
 - Be Sure to have Java 8+ installed too.
 
 Linux Debian users can use those commands to fast install everything:
+
 $ sudo apt-get install python-pip python-dev build-essential 
+
 $ sudo pip install --upgrade pip 
+
 $ sudo pip install --upgrade virtualenv 
+
 $ sudo -H pip install --upgrade youtube-dl
+
 $ sudo apt-get install ffmpeg
 
 After installing everything/making sure you have those dependencies, download FastMusicTube from this link:
