@@ -7,12 +7,12 @@
 
 (def user-musics-file "musics.txt")
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (println "Hello, World!"))
+;; TODO
+;; IMPROVE THE FUNCTION videos-ids SPEED USING MULTITHREADING
 
-(shell/sh "pwd")
+;; IDEAS
+;; CREATE A FUNCTION TO DEAL WITH ALBUMS AND FULL VIDEO PLAYLISTS AND CUT THE TRACKS ON THE APPROPRIATE TIME, ALSO RENAMING EACH OF THE TRACKS
+;; CREATE 2 MODES, MUSIC MODE AND ALBUM MODE, BY CREATING A LIMITATION OF VIDEO LENGTH SIZE ON MUSIC MODE TO DISTINGUISH BETWEEN FULL ALBUMS AND SINGLE MUSICS
 
 
 (defn first-video-id
@@ -42,8 +42,29 @@
        (search-videos)
        (map #(first-video-id %))))
 
-(videos-ids "musics.txt")
+(defn concatenate-yt-url
+  "Given a `xs` of strings of youtube videos id's, concatenate each item into a complete youtube video url"
+  [xs]
+  (map #(str "https://www.youtube.com/watch?v=" %) xs))
 
 
 ;; youtube-dl -x --audio-format "mp3" --audio-quality 0 https://www.youtube.com/watch?v=H6wl-EyhXl0
+
+;;(shell/sh "youtube-dl -x --audio-format \"mp3\"  --audio-quality 0 https://www.youtube.com/watch?v=H6wl-EyhXl0")
+
+
+(defn -main ;;TODO create a folder and place the files inside of it.
+  "Download videos of youtube as mp3 from `user-musics-file` and give feedback to the user while it downloads"
+  []
+  (do (println "Searching for the musics on YouTube and gathering the URL's please wait...")
+      (let [yt-links (concatenate-yt-url (videos-ids user-musics-file))
+            music-names (line-seq (io/reader user-musics-file))]
+        (dorun (map (fn [link music]
+                      (println (str "Downloading - " music))
+                      (shell/sh "youtube-dl" "-x" "--audio-format" "mp3" "--audio-quality" "0" link)) yt-links music-names)))
+      (println "Done.")
+      (System/exit 0)))
+
+;; (println (map #(shell/sh "youtube-dl" "-x" "--audio-format" "mp3" "--audio-quality" "0"  %) (concatenate-yt-url (videos-ids "musics.txt"))))
+
 
