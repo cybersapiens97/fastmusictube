@@ -52,6 +52,25 @@ Wait until the progress bar get's to 100%.
 After you're done, to use again, just delete the musics from musics.txt and replace with the new ones.
 
 WARN: DON'T CANCEL THE DOWNLOAD IF THE PROGRESS BAR SEEMS STUCKED, I'M WORKING TO IMPROVE THE PROGRESS BAR, NEVERTHLESS, THE PROGRAM KEEPS RUNNING EVEN WHEN THE PROG BAR SEEMS STUCKED.
+
+## Usage with clj
+
+Create a file `musics.txt` with a nice music titles like this one. Then call this `clojure` command.
+
+```
+$ cat musics.txt
+led zeppelin - stairway to heaven
+$ clojure -Sdeps '{:deps {fastmusictube {:git/url "https://github.com/cybersapiens97/fastmusictube.git" :sha "WIP"}}}' -m fastmusictube.core
+```
+
+## Running tests
+
+To run all test suite:
+
+```bash
+$ clj -A:test:test-runner
+```
+
 ## Options
 
 ...
