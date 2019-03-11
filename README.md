@@ -25,11 +25,11 @@ $ sudo -H pip install --upgrade youtube-dl
 $ sudo apt-get install ffmpeg
 
 After installing everything/making sure you have those dependencies, download FastMusicTube from this link:
-Download from http://example.com/FIXME.
+https://github.com/cybersapiens97/fastmusictube/raw/master/fastmusictube.zip
 
 ## Usage
 
-Inside the folder fastmusic tube, open the musics.txt file.
+Unzip the file and open the musics.txt file.
 Add your musics or albums, one per line, example:
 
 oasis - wonderwall
