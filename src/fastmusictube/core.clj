@@ -2,17 +2,21 @@
   (:gen-class)
   (:require [clojure.java.shell :as shell]
             [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [progrock.core :as pr])
+  (:use [clojure.pprint]))
 
 
 (def user-musics-file "musics.txt")
+(def user-musics-folder "musics")
+
 
 ;; TODO
-;; IMPROVE THE FUNCTION videos-ids SPEED USING MULTITHREADING
+;; CREATE A BETTER FEEDBACK FOR THE USER, MAKE THE PROGRESS BAR REFRESH EVERY SECOND WITH SOME ANIMATION
 
 ;; IDEAS
-;; CREATE A FUNCTION TO DEAL WITH ALBUMS AND FULL VIDEO PLAYLISTS AND CUT THE TRACKS ON THE APPROPRIATE TIME, ALSO RENAMING EACH OF THE TRACKS
-;; CREATE 2 MODES, MUSIC MODE AND ALBUM MODE, BY CREATING A LIMITATION OF VIDEO LENGTH SIZE ON MUSIC MODE TO DISTINGUISH BETWEEN FULL ALBUMS AND SINGLE MUSICS
+;; CREATE A FUNCTION TO DEAL WITH ALBUMS AND FULL VIDEO PLAYLISTS AND CUT THE TRACKS ON THE APPROPRIATE TIME USING FFMPEG, ALSO RENAMING EACH OF THE TRACKS
+;; CREATE 2 MODES, MUSIC MODE AND ALBUM/PLAYLIST MODE, BY CREATING A LIMITATION OF VIDEO LENGTH SIZE ON MUSIC MODE TO DISTINGUISH BETWEEN FULL ALBUMS AND SINGLE MUSICS
 
 
 (defn first-video-id
@@ -27,12 +31,15 @@
   "Given a java file `obj` returns a xs of it's strings split at line breaks and each formatted for propper youtube search query"
   [obj]
   (let [strings-xs (line-seq obj)]
-    (map #(str/replace % " " "+") strings-xs)))
+    (->> strings-xs
+         (map #(str/replace % " " "+"))
+         (map #(str/replace % "&" "%26"))  ;; NOTE Youtube replaces the char & for %26 on search queries, so here we prepare the string for this case.
+         (map #(str % "%2C+video")))))     ;; NOTE Here we prepare the search query to ignore playlists and take only full videos.
 
 (defn search-videos
   "Given a `coll` of strings, returns a xs of strings with youtube search html source codes of every single string from `coll`"
   [coll]
-  (let [youtube-search-url "https://www.youtube.com/results?search_query="]
+  (let [youtube-search-url "https://www.youtube.com/results?search_query="] 
     (map #(slurp (str youtube-search-url %)) coll)))
 
 (defn videos-ids
@@ -47,24 +54,20 @@
   [xs]
   (map #(str "https://www.youtube.com/watch?v=" %) xs))
 
-
-;; youtube-dl -x --audio-format "mp3" --audio-quality 0 https://www.youtube.com/watch?v=H6wl-EyhXl0
-
-;;(shell/sh "youtube-dl -x --audio-format \"mp3\"  --audio-quality 0 https://www.youtube.com/watch?v=H6wl-EyhXl0")
-
-
-(defn -main ;;TODO create a folder and place the files inside of it.
-  "Download videos of youtube as mp3 from `user-musics-file` and give feedback to the user while it downloads"
+(defn -main
+  "Download videos of youtube and as mp3  from `user-musics-file` using youtube-dl python app, save them inside `user-musics-folder`  and give feedback to the user while it downloads using `progrock`"
   []
   (do (println "Searching for the musics on YouTube and gathering the URL's please wait...")
-      (let [yt-links (concatenate-yt-url (videos-ids user-musics-file))
-            music-names (line-seq (io/reader user-musics-file))]
-        (dorun (map (fn [link music]
-                      (println (str "Downloading - " music))
-                      (shell/sh "youtube-dl" "-x" "--audio-format" "mp3" "--audio-quality" "0" link)) yt-links music-names)))
-      (println "Done.")
+      (.mkdir (io/file user-musics-folder))
+      (let [yt-links (concatenate-yt-url (videos-ids user-musics-file))            
+            music-names (line-seq (io/reader user-musics-file))
+            progress-bar (pr/progress-bar (count yt-links))]
+        (dorun (map (fn [link music] 
+                      (pr/print (pr/tick progress-bar (.indexOf music-names music))) ;; NOTE .indexOf here is used to get the number of the element that is being proccessed at the moment so we can use this on the progress-bar
+                      (shell/sh "youtube-dl" "-x" "--audio-format" "mp3" "--audio-quality" "0" link :dir user-musics-folder)) yt-links music-names)))
+      (println "\nDone.")
       (System/exit 0)))
 
-;; (println (map #(shell/sh "youtube-dl" "-x" "--audio-format" "mp3" "--audio-quality" "0"  %) (concatenate-yt-url (videos-ids "musics.txt"))))
+;; (pr/print (pr/tick progress-bar (inc (.indexOf music-names music))) {:format (str "Downloading - " music ":progress/:total    :percent% [:bar]     :remaining")})
 
 

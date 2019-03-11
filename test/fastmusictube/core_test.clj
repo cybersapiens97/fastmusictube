@@ -1,6 +1,7 @@
 (ns fastmusictube.core-test
   (:require [clojure.test :refer :all]
-            [fastmusictube.core :refer :all]))
+            [fastmusictube.core :refer :all]
+            [clojure.java.io :as io]))
 
 
 (def youtube-search-url "https://www.youtube.com/results?search_query=")
@@ -14,6 +15,14 @@
   (testing "testing if the fn videos-ids get the correct ids from the user file, in this case here, using a custom file for testing purposes")
   (spit "testfile.txt" "oasis champagne supernova\nled zeppelin stairway to heaven\nrolling stones sympathy for the devil\n")
   (is (= (videos-ids "testfile.txt") (seq ["tI-5uv4wryI" "D9ioyEvdggk" "GgnClrx8N2k"]))))
+
+
+
+;;;; TODO
+;;;; CREATE A TEST THAT WORKS FOR THE MAIN FUNCTION
+;; (deftest download-musics
+;;   (testing "testing if all the musics got propperly downloaded inside the propper folder by counting the number of files and comparing with the number of entries on user-musics-file")
+;;   (is (= (count (filter true? (map #(.isFile %) (file-seq (io/file user-musics-folder))))) (count (line-seq (io/reader "testfile.txt"))))))
 
 
 
