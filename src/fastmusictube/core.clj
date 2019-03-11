@@ -38,7 +38,7 @@
   [s]
   (->> (userfile-xs (io/reader s))
        (search-videos)
-       (map #(first-video-id %))))
+       (map first-video-id)))
 
 (defn concatenate-yt-url
   "Given a `xs` of strings of youtube videos id's, concatenate each item into a complete youtube video url"
@@ -48,16 +48,16 @@
 (defn -main
   "Download videos of youtube and as mp3  from `user-musics-file` using youtube-dl python app, save them inside `user-musics-folder`  and give feedback to the user while it downloads using `progrock`"
   []
-  (do (println "Searching for the musics on YouTube and gathering the URL's please wait...")
-      (.mkdir (io/file user-musics-folder))
-      (let [yt-links (concatenate-yt-url (videos-ids user-musics-file))            
-            music-names (line-seq (io/reader user-musics-file))
-            progress-bar (pr/progress-bar (count yt-links))]
-        (dorun (map (fn [link music] 
-                      (pr/print (pr/tick progress-bar (.indexOf music-names music))) ;; NOTE .indexOf here is used to get the number of the element that is being proccessed at the moment so we can use this on the progress-bar
-                      (shell/sh "youtube-dl" "-x" "--audio-format" "mp3" "--audio-quality" "0" link :dir user-musics-folder)) yt-links music-names)))
-      (println "\nDone.")
-      (System/exit 0)))
+  (println "Searching for the musics on YouTube and gathering the URL's please wait...")
+  (.mkdir (io/file user-musics-folder))
+  (let [yt-links (concatenate-yt-url (videos-ids user-musics-file)) 
+        progress-bar (pr/progress-bar (count yt-links))]
+    (run! (fn [link]
+            (pr/print (pr/tick progress-bar (.indexOf yt-links link))) ;; NOTE .indexOf here is used to get the number of the element that is being proccessed at the moment so we can use this on the progress-bar
+            (shell/sh "youtube-dl" "-x" "--audio-format" "mp3" "--audio-quality" "0" link :dir user-musics-folder))
+          yt-links))
+  (println "\nDone.")
+  (System/exit 0))
 
 ;; TODO
 ;; CREATE A BETTER FEEDBACK FOR THE USER, MAKE THE PROGRESS BAR REFRESH EVERY SECOND WITH SOME ANIMATION
